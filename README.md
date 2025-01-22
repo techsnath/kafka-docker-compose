@@ -10,7 +10,7 @@ docker compose exec kafka kafka-console-producer.sh --topic topic1 --broker-list
 # create consumer
 docker compose exec kafka kafka-console-consumer.sh --topic topic1 --from-beginning --bootstrap-server kafka:9092
 
-## Two partitions would receive the same messages from a producer
+## Two partitions would receive the same messages from a producer consume  
 
 docker compose exec kafka kafka-topics.sh --create --topic topic1 --partitions 2 --replication-factor 1 --bootstrap-server kafka:9092
 
