@@ -1,5 +1,7 @@
 # Run Kafka docker
 docker compose up
+docker compose down
+docker ps -a
 
 # create topic
 docker compose exec kafka kafka-topics.sh --create --topic topic1 --partitions 1 --replication-factor 1 --bootstrap-server kafka:9092
