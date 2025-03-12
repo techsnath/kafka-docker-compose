@@ -1,44 +1,31 @@
-version: '3.8'
-
+# https://kafka.js.org/docs/running-kafka-in-development
+version: '2'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper
-    restart: always
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_AUTH_PROVIDER_1: org.apache.zookeeper.server.auth.SASLAuthenticationProvider
-      ZOOKEEPER_REQUIRE_CLIENT_AUTH_SCHEME: sasl
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeeper_jaas.conf"
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - 2181:2181
     volumes:
-      - ./zookeeper_jaas.conf:/etc/kafka/zookeeper_jaas.conf
-
+      - ./_data/zookeeper/data:/data
   kafka:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka
-    restart: always
+    image: wurstmeister/kafka:2.12-2.5.0
+    hostname: kafka
+    #container_name: kafka
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: LISTENER_DOCKER_INTERNAL://:19092,LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://127.0.0.1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: __consumer_offsets:50:1,user.create:1:1
+    volumes:
+      - ./_data/kafka/data:/var/lib/kafka/data
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-
-      # Enable SASL/PLAIN Authentication
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
-      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
-
-    volumes:
-      - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
-      - ./server.properties:/etc/kafka/server.properties
-
 
 networks:
   elastic:
