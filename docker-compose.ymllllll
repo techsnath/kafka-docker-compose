@@ -13,9 +13,6 @@ services:
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeeper_jaas.conf"
     volumes:
       - ./zookeeper_jaas.conf:/etc/kafka/zookeeper_jaas.conf
-    
-    networks:
-      - kafka-net
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -25,21 +22,16 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
-      - "9093:9093"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
 
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,SASL_PLAINTEXT://localhost:9093
+      # Enable SASL/PLAIN Authentication
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CONSUMER_GROUP_COORDINATOR_REBALANCE_INTERVAL_MS: 3000 # Optional
-
-
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
 
       KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
 
@@ -47,10 +39,7 @@ services:
       - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
       - ./server.properties:/etc/kafka/server.properties
 
-    networks:
-      - kafka-net
-
 
 networks:
-  kafka-net:
+  elastic:
     driver: bridge
